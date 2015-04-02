@@ -1,0 +1,12 @@
+#include <stdio.h>
+
+FILE *f;
+char buf[4];
+int i;
+
+f  = fopen("/dev/hwrng", "r");
+fgets(buf, sizeof(buf), f);
+
+for (i = 0; i < 4; i++)
+	printf("%02x ", buf[i]);
+printf("\n");
