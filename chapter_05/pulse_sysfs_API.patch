@@ -1,0 +1,74 @@
+diff --git a/chapter_05/pulse/pulse.c b/chapter_05/pulse/pulse.c
+index 48edec6..fbbf47a 100644
+--- a/chapter_05/pulse/pulse.c
++++ b/chapter_05/pulse/pulse.c
+@@ -62,7 +62,6 @@ static ssize_t gpio_show(struct device *dev,
+ 
+ 	return sprintf(buf, "%d\n", pdev->gpio);
+ }
+-static DEVICE_ATTR_RO(gpio);
+ 
+ static ssize_t counter_show(struct device *dev,
+ 				struct device_attribute *attr, char *buf)
+@@ -71,7 +70,6 @@ static ssize_t counter_show(struct device *dev,
+ 
+ 	return sprintf(buf, "%d\n", atomic_read(&pdev->counter));
+ }
+-static DEVICE_ATTR_RO(counter);
+ 
+ static ssize_t counter_and_reset_show(struct device *dev,
+ 				struct device_attribute *attr, char *buf)
+@@ -82,7 +80,6 @@ static ssize_t counter_and_reset_show(struct device *dev,
+ 	atomic_set(&pdev->counter, 0);
+ 	return sprintf(buf, "%d\n", counter);
+ }
+-static DEVICE_ATTR_RO(counter_and_reset);
+ 
+ static ssize_t set_to_store(struct device *dev,
+ 				struct device_attribute *attr,
+@@ -99,30 +96,19 @@ static ssize_t set_to_store(struct device *dev,
+ 
+ 	return count;
+ }
+-static DEVICE_ATTR_WO(set_to);
+ 
+ /*
+  * Class attributes
+  */
+ 
+-static struct attribute *pulse_attrs[] = {
+-        &dev_attr_gpio.attr,
+-        &dev_attr_counter.attr,
+-        &dev_attr_counter_and_reset.attr,
+-        &dev_attr_set_to.attr,
+-        NULL,
++static struct device_attribute pulse_attrs[] = {
++	__ATTR(gpio, S_IRUGO, gpio_show, NULL),
++	__ATTR(counter, S_IRUGO, counter_show, NULL),
++	__ATTR(counter_and_reset, S_IRUGO, counter_and_reset_show, NULL),
++	__ATTR(set_to, S_IWUSR, NULL, set_to_store),
++	__ATTR_NULL
+ };
+ 
+-static const struct attribute_group pulse_group = {
+-        .attrs = pulse_attrs,
+-};
+-
+-static const struct attribute_group *pulse_groups[] = {
+-        &pulse_group,
+-        NULL,
+-};
+-
+-
+ static void pulse_device_destruct(struct device *dev)
+ {
+         struct pulse_device *pdev = dev_get_drvdata(dev);
+@@ -217,7 +203,7 @@ static int __init pulse_init(void)
+ 		printk(KERN_ERR "pulse: failed to allocate class\n");
+ 		return -ENOMEM;
+ 	}
+-	pulse_class->dev_groups = pulse_groups;
++	pulse_class->dev_attrs = pulse_attrs;
+ 
+ 	return 0;
+ }
